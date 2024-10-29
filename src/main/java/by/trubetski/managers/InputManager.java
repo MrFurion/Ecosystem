@@ -1,12 +1,14 @@
 package by.trubetski.managers;
 
+import by.trubetski.controllers.EcosystemController;
+import by.trubetski.dto.EcosystemDto;
+import by.trubetski.mapper.EcosystemMapper;
 import by.trubetski.models.Ecosystem;
 import by.trubetski.services.EcosystemServices;
 import by.trubetski.services.impl.EcosystemServicesImpl;
+import by.trubetski.util.ValidationUtils;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import static java.lang.System.in;
@@ -14,24 +16,21 @@ import static java.lang.System.out;
 
 public class InputManager {
     private static final EcosystemServices ecosystemServices = new EcosystemServicesImpl();
-    private Map<String, Ecosystem> ecosystems;
-
-    public InputManager() {
-        this.ecosystems = new HashMap<>();
-    }
+    private static final EcosystemController ecosystemController = new EcosystemController();
 
     public static void input() {
         Scanner scanner = new Scanner(in);
         String choice;
 
         while (true) {
-            out.println("\n--- Ecosystem Menu ---");
-            out.println("1. Create new ecosystem");
-            out.println("2. Load ecosystem from file");
-            out.println("3. Save ecosystem to file");
-            out.println("4. List all ecosystems");
-            out.println("5. Exit");
-            out.print("Enter your choice: ");
+            out.println("\n--- Меню экосистем ---");
+            out.println("1. Создать новую экосистему");
+            out.println("2. Загрузить экосистему из файла");
+            out.println("3. Показать все экосистемы");
+            out.println("4. Обновить экосистему");
+            out.println("5. Удалить экосистему");
+            out.println("6. Выйти");
+            out.print("Введите ваш выбор: ");
             choice = scanner.nextLine();
 
             switch (choice) {
@@ -42,57 +41,170 @@ public class InputManager {
                     loadEcosystem(scanner);
                     break;
                 case "3":
-                    saveEcosystem(scanner);
+                    ecosystemController.findAllEcosystem();
                     break;
                 case "4":
-                    ecosystemServices.listEcosystems();
+                    updateEcosystem(scanner);
                     break;
                 case "5":
-                    out.println("Exiting...");
+                    deleteEcosystem(scanner);
+                    break;
+                case "6":
+                    out.println("Выход...");
                     return;
                 default:
-                    out.println("Invalid choice. Please try again.");
+                    out.println("Неверный выбор. Попробуйте снова.");
             }
         }
     }
+
     private static void createNewEcosystem(Scanner scanner) {
-        System.out.print("Enter the name of the new ecosystem: ");
-        String name = scanner.nextLine();
-        Ecosystem newEcosystem = new Ecosystem(name);
-        ecosystemServices.addEcosystem(newEcosystem);
-        System.out.println("New ecosystem '" + name + "' created.");
+        EcosystemDto ecosystemDto;
+        while (true) {
+            out.print("Введите название новой экосистемы: ");
+            String ecosystemName = scanner.nextLine();
+
+            out.print("Введите температуру (в градусах Цельсия): ");
+            int temperature = Integer.parseInt(scanner.nextLine());
+
+            out.print("Введите влажность (в процентах): ");
+            int humidity = Integer.parseInt(scanner.nextLine());
+
+            out.print("Введите количество воды (в литрах): ");
+            int quantityWater = Integer.parseInt(scanner.nextLine());
+
+            out.print("Введите количество земли (в кубических метрах): ");
+            int quantityEarth = Integer.parseInt(scanner.nextLine());
+
+            ecosystemDto = EcosystemDto.builder()
+                    .name(ecosystemName)
+                    .temperature(temperature)
+                    .humidity(humidity)
+                    .quantityWater(quantityWater)
+                    .quantityEarth(quantityEarth)
+                    .animals(new ArrayList<>())
+                    .plants(new ArrayList<>())
+                    .build();
+
+            try {
+                ValidationUtils.validate(ecosystemDto);
+                break;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Ошибка валидации: " + e.getMessage());
+                System.out.println("Пожалуйста, введите данные снова.");
+            }
+        }
+
+        Ecosystem ecosystem = EcosystemMapper.INSTANCE.toEntity(ecosystemDto);
+
+        out.println("Экосистема '" + ecosystem.getName() + "' создана с параметрами: температура = " + ecosystem.getTemperature() +
+                "°C, влажность = " + ecosystem.getHumidity() + "%, количество воды = " + ecosystem.getQuantityWater() + " л, количество земли = " + ecosystem.getQuantityEarth() + " м³.");
+
+        String option;
+        while (true) {
+            option = displayAddMenu(scanner);
+
+            if (option.equals("1")) {
+                PlantManager.addPlantsToEcosystem(scanner, ecosystem);
+            } else if (option.equals("2")) {
+                AnimalManager.addAnimalsToEcosystem(scanner, ecosystem);
+            } else if (option.equals("3")) {
+                ecosystemServices.addEcosystem(ecosystem);
+                out.println("Экосистема '" + ecosystem.getName() + "' успешно создана!");
+
+                out.print("Введите путь для сохранения экосистемы: ");
+                String filePath = scanner.nextLine();
+
+                ecosystemController.creatNewEcosystem(ecosystem, filePath);
+                break;
+            } else {
+                out.println("Неверный выбор. Попробуйте снова.");
+            }
+        }
     }
 
     private static void loadEcosystem(Scanner scanner) {
-        System.out.print("Enter the name of the ecosystem: ");
+        out.print("Введите название экосистемы: ");
         String ecosystemName = scanner.nextLine();
-        System.out.print("Enter the plants file path: ");
-        String plantsFile = scanner.nextLine();
-        System.out.print("Enter the animals file path: ");
-        String animalsFile = scanner.nextLine();
+        ecosystemController.findEcosystemByName(ecosystemName);
+    }
 
-        try {
-            ecosystemServices.loadEcosystemFromFile(ecosystemName, plantsFile, animalsFile);
-            System.out.println("Ecosystem '" + ecosystemName + "' loaded from files.");
-        } catch (IOException e) {
-            System.out.println("Error loading ecosystem: " + e.getMessage());
+    private static String displayAddMenu(Scanner scanner) {
+        out.println("Хотите добавить растения или животных?");
+        out.println("1. Добавить растения");
+        out.println("2. Добавить животных");
+        out.println("3. Завершить добавление");
+        out.print("Введите ваш выбор: ");
+        return scanner.nextLine();
+    }
+
+    private static void updateEcosystem(Scanner scanner) {
+        out.print("Введите название экосистемы для обновления: ");
+        String ecosystemName = scanner.nextLine();
+        Ecosystem ecosystem = ecosystemController.findEcosystemByName(ecosystemName);
+
+        if (ecosystem == null) {
+            out.println("Экосистема с таким именем не найдена.");
+            return;
+        }
+
+        out.print("Введите новую температуру (текущая: " + ecosystem.getTemperature() + "): ");
+        ecosystem.setTemperature(Integer.parseInt(scanner.nextLine()));
+
+        out.print("Введите новую влажность (текущая: " + ecosystem.getHumidity() + "): ");
+        ecosystem.setHumidity(Integer.parseInt(scanner.nextLine()));
+
+        out.print("Введите новое количество воды (текущая: " + ecosystem.getQuantityWater() + " л): ");
+        ecosystem.setQuantityWater(Integer.parseInt(scanner.nextLine()));
+
+        out.print("Введите новое количество земли (текущая: " + ecosystem.getQuantityEarth() + " м³): ");
+        ecosystem.setQuantityEarth(Integer.parseInt(scanner.nextLine()));
+
+        ecosystemController.updateEcosystem(ecosystemName, ecosystem);
+        out.println("Экосистема '" + ecosystemName + "' успешно обновлена!");
+
+        String option;
+        while (true) {
+            out.println("\n--- Редактирование экосистемы ---");
+            out.println("1. Добавить животное");
+            out.println("2. Добавить растение");
+            out.println("3. Изменить параметры животного");
+            out.println("4. Изменить параметры растения");
+            out.println("5. Сохранить и выйти");
+            out.print("Выберите опцию: ");
+            option = scanner.nextLine();
+
+            switch (option) {
+                case "1":
+                    AnimalManager.addAnimalsToEcosystem(scanner, ecosystem);
+                    break;
+
+                case "2":
+                    PlantManager.addPlantsToEcosystem(scanner, ecosystem);
+                    break;
+
+                case "3":
+                    AnimalManager.updateAnimalInEcosystem(scanner, ecosystem);
+                    break;
+
+                case "4":
+                    PlantManager.updatePlantInEcosystem(scanner, ecosystem);
+                    break;
+
+                case "5":
+                    ecosystemController.updateEcosystem(ecosystemName, ecosystem);
+                    out.println("Экосистема '" + ecosystemName + "' успешно обновлена!");
+                    return;
+                default:
+                    out.println("Неверный выбор. Попробуйте снова.");
+            }
         }
     }
 
-
-    private static void saveEcosystem(Scanner scanner) {
-        System.out.print("Enter the name of the ecosystem: ");
+    private static void deleteEcosystem(Scanner scanner) {
+        out.print("Введите название экосистемы для удаления: ");
         String ecosystemName = scanner.nextLine();
-        System.out.print("Enter the file path to save plants: ");
-        String plantsFile = scanner.nextLine();
-        System.out.print("Enter the file path to save animals: ");
-        String animalsFile = scanner.nextLine();
 
-        try {
-            ecosystemServices.saveEcosystemToFile(ecosystemName, plantsFile, animalsFile);
-            System.out.println("Ecosystem '" + ecosystemName + "' saved to files.");
-        } catch (IOException e) {
-            System.out.println("Error saving ecosystem: " + e.getMessage());
-        }
+        ecosystemController.deleteEcosystemByName(ecosystemName);
     }
 }

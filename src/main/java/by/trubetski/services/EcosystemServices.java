@@ -3,11 +3,16 @@ package by.trubetski.services;
 import by.trubetski.models.Ecosystem;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 public interface EcosystemServices {
-    void loadEcosystemFromFile(String ecosystemName, String plantsFile, String animalsFile) throws IOException;
-    Ecosystem getEcosystem(String name);
+    Ecosystem loadEcosystemFromFile(String ecosystemName) throws IOException;
+
     void addEcosystem(Ecosystem ecosystem);
-    void saveEcosystemToFile(String ecosystemName, String plantsFile, String animalsFile) throws IOException;
+
     void listEcosystems();
+
+    void saveEcosystemToFile(Ecosystem ecosystem, String filePath) throws IOException;
+
+    void delete(String ecosystemNamePath);
 }
