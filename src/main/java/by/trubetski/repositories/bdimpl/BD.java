@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public class BD implements EcosystemRepository {
 
-    public static final String ALLECOSYSTEMS = "I:/IT/Clevertec/Ecosystem/allecosystems"; // Укажите путь к папке, где хранятся файлы экосистем
+    public static final String ALLECOSYSTEMS = "I:/IT/Ecosystem/allecosystems"; // Укажите путь к папке, где хранятся файлы экосистем
 
     @Override
     public void saveEcosystem(BufferedWriter writer, Ecosystem ecosystem, String filePath) {
