@@ -3,7 +3,6 @@ package by.trubetski.services;
 import by.trubetski.models.Ecosystem;
 
 import java.io.IOException;
-import java.util.Scanner;
 
 public interface EcosystemServices {
     Ecosystem loadEcosystemFromFile(String ecosystemName) throws IOException;

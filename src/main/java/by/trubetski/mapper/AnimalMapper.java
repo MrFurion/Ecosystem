@@ -13,6 +13,4 @@ public interface AnimalMapper {
     AnimalDto toDto(Animal animal);
 
     Animal toEntity(AnimalDto animalDto);
-
-
 }

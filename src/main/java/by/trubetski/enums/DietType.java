@@ -10,6 +10,7 @@ public enum DietType {
     DietType(String dietType) {
         this.dietType = dietType;
     }
+
     public String getDietType() {
         return dietType;
     }

@@ -4,9 +4,16 @@ import by.trubetski.dto.PlantDto;
 import by.trubetski.mapper.PlantMapper;
 import by.trubetski.models.Ecosystem;
 import by.trubetski.models.Plant;
+import by.trubetski.util.ValidationIntFildOnNull;
+import by.trubetski.util.ValidationUtils;
 
 import java.util.Scanner;
 
+import static by.trubetski.constants.PlaintDtoConstants.AGE;
+import static by.trubetski.constants.PlaintDtoConstants.CHARACTERS_OF_NAME;
+import static by.trubetski.constants.PlaintDtoConstants.COUNT;
+import static by.trubetski.constants.PlaintDtoConstants.TIME_LIFE;
+import static by.trubetski.constants.PlaintDtoConstants.WEIGHT;
 import static java.lang.System.out;
 
 public class PlantManager {
@@ -16,16 +23,21 @@ public class PlantManager {
 
         while (true) {
             out.println("Добавление нового растения:");
-            out.print("Название растения: ");
+
+            out.print("Название растения должно иметь " + CHARACTERS_OF_NAME + ": ");
             String name = scanner.nextLine();
-            out.print("Возраст растения: ");
-            int age = Integer.parseInt(scanner.nextLine());
-            out.print("Вес растения (в кг): ");
-            int weight = Integer.parseInt(scanner.nextLine());
-            out.print("Продолжительность жизни (лет): ");
-            int timeLife = Integer.parseInt(scanner.nextLine());
-            out.print("Количество: ");
-            int count = Integer.parseInt(scanner.nextLine());
+
+            Integer age = ValidationIntFildOnNull.getInputInt(scanner, "Возраст растения до " + AGE + ": ");
+            if (age == null) continue;
+
+            Integer weight = ValidationIntFildOnNull.getInputInt(scanner, "Вес растения (в кг до " + WEIGHT + "): ");
+            if (weight == null) continue;
+
+            Integer timeLife = ValidationIntFildOnNull.getInputInt(scanner, "Продолжительность жизни (до " + TIME_LIFE + "): ");
+            if (timeLife == null) continue;
+
+            Integer count = ValidationIntFildOnNull.getInputInt(scanner, "Количество до " + COUNT + ": ");
+            if (count == null) continue;
 
             PlantDto plantDto = PlantDto.builder()
                     .name(name)
@@ -35,14 +47,20 @@ public class PlantManager {
                     .count(count)
                     .build();
 
-            Plant plant = plantMapper.toEntity(plantDto);
+            try {
+                ValidationUtils.validate(plantDto);
 
-            ecosystem.getPlants().add(plant);
-            out.println("Растение добавлено.");
+                Plant plant = plantMapper.toEntity(plantDto);
+                ecosystem.getPlants().add(plant);
+                out.println("Растение добавлено.");
 
-            out.print("Хотите добавить ещё одно растение? (да/нет): ");
-            if (!scanner.nextLine().equalsIgnoreCase("да")) {
-                break;
+                out.print("Хотите добавить ещё одно растение? (да/нет): ");
+                if (!scanner.nextLine().equalsIgnoreCase("да")) {
+                    break;
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("Ошибка валидации: " + e.getMessage());
+                System.out.println("Пожалуйста, введите данные снова.");
             }
         }
     }
@@ -61,17 +79,17 @@ public class PlantManager {
             return;
         }
 
-        out.print("Введите новый возраст для растения (текущий: " + plant.getAge() + "): ");
-        plant.setAge(Integer.parseInt(scanner.nextLine()));
+        Integer newAge = ValidationIntFildOnNull.getInputInt(scanner, "Введите новый возраст для растения (текущий: " + plant.getAge() + "): ");
+        if (newAge != null) plant.setAge(newAge);
 
-        out.print("Введите новый вес для растения (текущий: " + plant.getWeight() + "): ");
-        plant.setWeight(Integer.parseInt(scanner.nextLine()));
+        Integer newWeight = ValidationIntFildOnNull.getInputInt(scanner, "Введите новый вес для растения (текущий: " + plant.getWeight() + "): ");
+        if (newWeight != null) plant.setWeight(newWeight);
 
-        out.print("Введите новую продолжительность жизни для растения (текущая: " + plant.getTimeLife() + "): ");
-        plant.setTimeLife(Integer.parseInt(scanner.nextLine()));
+        Integer newTimeLife = ValidationIntFildOnNull.getInputInt(scanner, "Введите новую продолжительность жизни для растения (текущая: " + plant.getTimeLife() + "): ");
+        if (newTimeLife != null) plant.setTimeLife(newTimeLife);
 
-        out.print("Введите новое количество (текущая: " + plant.getCount() + "): ");
-        plant.setCount(Integer.parseInt(scanner.nextLine()));
+        Integer newCount = ValidationIntFildOnNull.getInputInt(scanner, "Введите новое количество (текущее: " + plant.getCount() + "): ");
+        if (newCount != null) plant.setCount(newCount);
 
         out.println("Растение успешно обновлено: " + plant);
     }

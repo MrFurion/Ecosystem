@@ -6,11 +6,21 @@ import by.trubetski.mapper.EcosystemMapper;
 import by.trubetski.models.Ecosystem;
 import by.trubetski.services.EcosystemServices;
 import by.trubetski.services.impl.EcosystemServicesImpl;
+import by.trubetski.util.ValidationIntFildOnNull;
 import by.trubetski.util.ValidationUtils;
 
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import static by.trubetski.constants.EcosystemDtoConstants.CHARACTERS_NAME;
+import static by.trubetski.constants.EcosystemDtoConstants.C_MAX;
+import static by.trubetski.constants.EcosystemDtoConstants.C_MIN;
+import static by.trubetski.constants.EcosystemDtoConstants.HUMIDITY_MAX;
+import static by.trubetski.constants.EcosystemDtoConstants.HUMIDITY_MIN;
+import static by.trubetski.constants.EcosystemDtoConstants.QUANTITY_EARTH_MAX;
+import static by.trubetski.constants.EcosystemDtoConstants.QUANTITY_EARTH_MIN;
+import static by.trubetski.constants.EcosystemDtoConstants.QUANTITY_WATER_MAX;
+import static by.trubetski.constants.EcosystemDtoConstants.QUANTITY_WATER_MIN;
 import static java.lang.System.in;
 import static java.lang.System.out;
 
@@ -61,20 +71,28 @@ public class InputManager {
     private static void createNewEcosystem(Scanner scanner) {
         EcosystemDto ecosystemDto;
         while (true) {
-            out.print("Введите название новой экосистемы: ");
-            String ecosystemName = scanner.nextLine();
+            out.print("Введите название новой экосистемы размером " + CHARACTERS_NAME + ": ");
+            String ecosystemName = scanner.nextLine().trim();
+            if (ecosystemName.isEmpty()) {
+                out.println("Ошибка: название экосистемы не может быть пустым. Попробуйте снова.");
+                continue;
+            }
 
-            out.print("Введите температуру (в градусах Цельсия): ");
-            int temperature = Integer.parseInt(scanner.nextLine());
+            Integer temperature = ValidationIntFildOnNull.getInputInt(scanner,
+                    "Введите температуру (в градусах Цельсия) от " + C_MIN + " до " + C_MAX + ": ");
+            if (temperature == null) continue;
 
-            out.print("Введите влажность (в процентах): ");
-            int humidity = Integer.parseInt(scanner.nextLine());
+            Integer humidity = ValidationIntFildOnNull.getInputInt(scanner,
+                    "Введите влажность (в процентах) от " + HUMIDITY_MIN + " до " + HUMIDITY_MAX + ": ");
+            if (humidity == null) continue;
 
-            out.print("Введите количество воды (в литрах): ");
-            int quantityWater = Integer.parseInt(scanner.nextLine());
+            Integer quantityWater = ValidationIntFildOnNull.getInputInt(scanner,
+                    "Введите количество воды (в литрах) от " + QUANTITY_WATER_MIN + " до " + QUANTITY_WATER_MAX + ": ");
+            if (quantityWater == null) continue;
 
-            out.print("Введите количество земли (в кубических метрах): ");
-            int quantityEarth = Integer.parseInt(scanner.nextLine());
+            Integer quantityEarth = ValidationIntFildOnNull.getInputInt(scanner,
+                    "Введите количество земли (в кубических метрах) от " + QUANTITY_EARTH_MIN + " до " + QUANTITY_EARTH_MAX + ": ");
+            if (quantityEarth == null) continue;
 
             ecosystemDto = EcosystemDto.builder()
                     .name(ecosystemName)
@@ -90,15 +108,16 @@ public class InputManager {
                 ValidationUtils.validate(ecosystemDto);
                 break;
             } catch (IllegalArgumentException e) {
-                System.out.println("Ошибка валидации: " + e.getMessage());
-                System.out.println("Пожалуйста, введите данные снова.");
+                out.println("Ошибка валидации: " + e.getMessage());
+                out.println("Пожалуйста, введите данные снова.");
             }
         }
 
         Ecosystem ecosystem = EcosystemMapper.INSTANCE.toEntity(ecosystemDto);
 
         out.println("Экосистема '" + ecosystem.getName() + "' создана с параметрами: температура = " + ecosystem.getTemperature() +
-                "°C, влажность = " + ecosystem.getHumidity() + "%, количество воды = " + ecosystem.getQuantityWater() + " л, количество земли = " + ecosystem.getQuantityEarth() + " м³.");
+                "°C, влажность = " + ecosystem.getHumidity() + "%, количество воды = "
+                + ecosystem.getQuantityWater() + " л, количество земли = " + ecosystem.getQuantityEarth() + " м³.");
 
         String option;
         while (true) {
@@ -148,17 +167,25 @@ public class InputManager {
             return;
         }
 
-        out.print("Введите новую температуру (текущая: " + ecosystem.getTemperature() + "): ");
-        ecosystem.setTemperature(Integer.parseInt(scanner.nextLine()));
+        Integer temperature = ValidationIntFildOnNull.getInputInt(scanner, "Введите новую температуру (текущая: "
+                + ecosystem.getTemperature() + "): ");
+        if (temperature == null) return;
+        ecosystem.setTemperature(temperature);
 
-        out.print("Введите новую влажность (текущая: " + ecosystem.getHumidity() + "): ");
-        ecosystem.setHumidity(Integer.parseInt(scanner.nextLine()));
+        Integer humidity = ValidationIntFildOnNull.getInputInt(scanner, "Введите новую влажность (текущая: "
+                + ecosystem.getHumidity() + "): ");
+        if (humidity == null) return;
+        ecosystem.setHumidity(humidity);
 
-        out.print("Введите новое количество воды (текущая: " + ecosystem.getQuantityWater() + " л): ");
-        ecosystem.setQuantityWater(Integer.parseInt(scanner.nextLine()));
+        Integer quantityWater = ValidationIntFildOnNull.getInputInt(scanner, "Введите новое количество воды (текущая: "
+                + ecosystem.getQuantityWater() + " л): ");
+        if (quantityWater == null) return;
+        ecosystem.setQuantityWater(quantityWater);
 
-        out.print("Введите новое количество земли (текущая: " + ecosystem.getQuantityEarth() + " м³): ");
-        ecosystem.setQuantityEarth(Integer.parseInt(scanner.nextLine()));
+        Integer quantityEarth = ValidationIntFildOnNull.getInputInt(scanner, "Введите новое количество земли (текущая: "
+                + ecosystem.getQuantityEarth() + " м³): ");
+        if (quantityEarth == null) return;
+        ecosystem.setQuantityEarth(quantityEarth);
 
         ecosystemController.updateEcosystem(ecosystemName, ecosystem);
         out.println("Экосистема '" + ecosystemName + "' успешно обновлена!");

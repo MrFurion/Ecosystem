@@ -8,6 +8,8 @@ import jakarta.validation.ValidatorFactory;
 
 import java.util.Set;
 
+import static java.lang.System.out;
+
 public class ValidationUtils {
     private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private static final Validator validator = factory.getValidator();
@@ -15,7 +17,7 @@ public class ValidationUtils {
     public static <T> void validate(T object) {
         Set<ConstraintViolation<T>> violations = validator.validate(object);
         if (!violations.isEmpty()) {
-            violations.forEach(v -> System.out.println(v.getMessage()));
+            violations.forEach(v -> out.println(v.getMessage()));
             throw new IllegalArgumentException("Объект не прошел валидацию.");
         }
     }

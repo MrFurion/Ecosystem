@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.System.out;
+
 public class EcosystemServicesImpl implements EcosystemServices {
 
     private Map<String, Ecosystem> ecosystems;
@@ -78,7 +80,7 @@ public class EcosystemServicesImpl implements EcosystemServices {
                                     Integer.parseInt(animalData[3]), Integer.parseInt(animalData[4]), Integer.parseInt(animalData[5]));
                             ecosystem.getAnimals().add(animal);
                         } else {
-                            System.out.println("Ошибка: Неправильный формат данных для животного в строке: " + line);
+                            out.println("Ошибка: Неправильный формат данных для животного в строке: " + line);
                         }
                     }
                 }
@@ -86,7 +88,7 @@ public class EcosystemServicesImpl implements EcosystemServices {
         }
 
         ecosystems.put(ecosystemName, ecosystem);
-        System.out.println("Ваша экосистема ------> " + ecosystem);
+        out.println("Ваша экосистема ------> " + ecosystem);
         return ecosystem;
     }
 
@@ -95,24 +97,24 @@ public class EcosystemServicesImpl implements EcosystemServices {
         File directory = ecosystemRepository.foundAllEcosystems();
 
         if (!directory.exists() || !directory.isDirectory()) {
-            System.out.println("Папка с экосистемами не найдена.");
+            out.println("Папка с экосистемами не найдена.");
             return;
         }
 
-        System.out.println("Доступные экосистемы:");
+        out.println("Доступные экосистемы:");
         File[] files = directory.listFiles();
 
         if (files == null) {
-            System.out.println("Не удалось прочитать содержимое директории.");
+            out.println("Не удалось прочитать содержимое директории.");
             return;
         }
 
         if (files.length > 0) {
             for (File file : files) {
-                System.out.println(file.getName());
+                out.println(file.getName());
             }
         } else {
-            System.out.println("В директории нет файлов.");
+            out.println("В директории нет файлов.");
         }
     }
 

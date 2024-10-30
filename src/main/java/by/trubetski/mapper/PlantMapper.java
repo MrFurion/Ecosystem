@@ -11,5 +11,6 @@ public interface PlantMapper {
     PlantMapper INSTANCE = Mappers.getMapper(PlantMapper.class);
 
     PlantDto toDto(Plant plant);
+
     Plant toEntity(PlantDto plantDto);
 }
